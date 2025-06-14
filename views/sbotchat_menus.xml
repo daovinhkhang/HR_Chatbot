@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_sbotchat_main" 
+              name="SBot Chat" 
+              sequence="10"
+              web_icon="sbotchat,static/description/icon.png"/>
+
+    <!-- Chat Interface Menu -->
+    <menuitem id="menu_sbotchat_interface" 
+              name="Giao diện Chat" 
+              parent="menu_sbotchat_main" 
+              action="action_sbotchat_chat_interface" 
+              sequence="10"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_sbotchat_config" 
+              name="Cấu hình" 
+              parent="menu_sbotchat_main" 
+              action="action_sbotchat_config" 
+              sequence="20"/>
+
+    <!-- Conversations Menu -->
+    <menuitem id="menu_sbotchat_conversations" 
+              name="Cuộc trò chuyện" 
+              parent="menu_sbotchat_main" 
+              action="action_sbotchat_conversation" 
+              sequence="30"/>
+
+    <!-- Messages Menu -->
+    <menuitem id="menu_sbotchat_messages" 
+              name="Tin nhắn" 
+              parent="menu_sbotchat_main" 
+              action="action_sbotchat_message" 
+              sequence="40"/>
+</odoo> 

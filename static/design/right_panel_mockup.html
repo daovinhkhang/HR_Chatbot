@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBotChat - Right Panel Dashboard Mockup</title>
+    <style>
+        /* CSS Variables matching sbotchat.css */
+        :root {
+            --primary-color: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --bg-glass-strong: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%);
+            --border-glass-strong: rgba(255, 255, 255, 0.2);
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Main Container Layout - 3 Columns */
+        .sbotchat-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 400px; /* Sidebar + Main + Right Panel */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Existing Sidebar */
+        .sbotchat-sidebar {
+            background: var(--bg-glass-strong);
+            border-right: 2px solid var(--border-glass-strong);
+            padding: var(--space-lg);
+        }
+
+        .sidebar-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Existing Main Chat */
+        .sbotchat-main {
+            background: var(--bg-glass-strong);
+            border-right: 2px solid var(--border-glass-strong);
+            padding: var(--space-lg);
+        }
+
+        .main-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* 🆕 NEW RIGHT PANEL */
+        .sbotchat-right-panel {
+            width: 400px;
+            min-width: 400px;
+            max-width: 400px;
+            background: var(--bg-glass-strong);
+            backdrop-filter: blur(16px);
+            border-left: 2px solid var(--border-glass-strong);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            padding: var(--space-lg);
+            border-bottom: 2px solid var(--border-glass-strong);
+            background: rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(12px);
+        }
+
+        .dashboard-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0 0 var(--space-sm) 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .dashboard-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            flex: 1;
+            padding: var(--space-lg);
+            overflow-y: auto;
+        }
+
+        /* Widget Sections */
+        .widget-section {
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass-strong);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        /* Status Colors */
+        .stat-success { color: var(--success); }
+        .stat-warning { color: var(--warning); }
+        .stat-danger { color: var(--danger); }
+        .stat-primary { color: var(--primary-color); }
+
+        /* Real-time List */
+        .realtime-list {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass-strong);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .list-item {
+            padding: var(--space-md);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .item-detail {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .item-status {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .status-present { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .status-late { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .status-absent { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .status-pending { background: rgba(99, 102, 241, 0.2); color: var(--primary-color); }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+            margin-top: var(--space-lg);
+        }
+
+        .quick-action-btn {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--primary-color);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 8px;
+            margin-top: var(--space-sm);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary-color));
+            transition: width 0.3s ease;
+        }
+
+        /* Live Indicator */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            color: var(--success);
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sbotchat-container {
+                grid-template-columns: 280px 1fr;
+            }
+            .sbotchat-right-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sbotchat-container">
+        <!-- Existing Sidebar -->
+        <div class="sbotchat-sidebar">
+            <div class="sidebar-title">
+                <i style="margin-right: 8px;">💬</i>
+                SBot Chat
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                Conversations list...
+            </div>
+        </div>
+
+        <!-- Existing Main Chat -->
+        <div class="sbotchat-main">
+            <div class="main-title">
+                <i style="margin-right: 8px;">🤖</i>
+                AI Assistant Chat
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                Chat messages area...
+            </div>
+        </div>
+
+        <!-- 🆕 NEW RIGHT PANEL DASHBOARD -->
+        <div class="sbotchat-right-panel">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h3 class="dashboard-title">
+                    <i>📊</i>
+                    HR Dashboard
+                </h3>
+                <p class="dashboard-subtitle">
+                    <span class="live-indicator">
+                        <span class="live-dot"></span>
+                        Live Updates
+                    </span>
+                    • Cập nhật mỗi 30s
+                </p>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Employee Overview -->
+                <div class="widget-section">
+                    <h4 class="section-title">
+                        <i>👥</i>
+                        Tổng quan nhân viên
+                    </h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value stat-primary">150</div>
+                            <div class="stat-label">Tổng NV</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value stat-success">142</div>
+                            <div class="stat-label">Có mặt</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value stat-warning">8</div>
+                            <div class="stat-label">Đi muộn</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value stat-danger">2</div>
+                            <div class="stat-label">Vắng mặt</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: var(--space-md);">
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Tỷ lệ chấm công hôm nay</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">94.7%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 94.7%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Attendance -->
+                <div class="widget-section">
+                    <h4 class="section-title">
+                        <i>⏰</i>
+                        Chấm công real-time
+                    </h4>
+                    <div class="realtime-list">
+                        <div class="list-item">
+                            <div class="item-info">
+                                <div class="item-name">Nguyễn Văn A</div>
+                                <div class="item-detail">Check-in: 08:15</div>
+                            </div>
+                            <div class="item-status status-late">Muộn</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-info">
+                                <div class="item-name">Trần Thị B</div>
+                                <div class="item-detail">Check-in: 07:45</div>
+                            </div>
+                            <div class="item-status status-present">Sớm</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-info">
+                                <div class="item-name">Lê Văn C</div>
+                                <div class="item-detail">Check-in: 08:00</div>
+                            </div>
+                            <div class="item-status status-present">Đúng giờ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave Requests -->
+                <div class="widget-section">
+                    <h4 class="section-title">
+                        <i>📝</i>
+                        Nghỉ phép chờ duyệt
+                    </h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value stat-warning">5</div>
+                            <div class="stat-label">Chờ duyệt</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value stat-success">12</div>
+                            <div class="stat-label">Đã duyệt</div>
+                        </div>
+                    </div>
+                    <div class="realtime-list">
+                        <div class="list-item">
+                            <div class="item-info">
+                                <div class="item-name">Nguyễn Văn D</div>
+                                <div class="item-detail">15/01 - 17/01 (3 ngày)</div>
+                            </div>
+                            <div class="item-status status-pending">Chờ</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-info">
+                                <div class="item-name">Phạm Thị E</div>
+                                <div class="item-detail">20/01 - 21/01 (2 ngày)</div>
+                            </div>
+                            <div class="item-status status-pending">Chờ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recruitment Pipeline -->
+                <div class="widget-section">
+                    <h4 class="section-title">
+                        <i>🎯</i>
+                        Tuyển dụng
+                    </h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value stat-primary">8</div>
+                            <div class="stat-label">Vị trí mở</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value stat-warning">23</div>
+                            <div class="stat-label">Ứng viên</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="widget-section">
+                    <h4 class="section-title">
+                        <i>⚡</i>
+                        Thao tác nhanh
+                    </h4>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn">
+                            <i style="margin-right: 4px;">✅</i>
+                            Duyệt nghỉ phép
+                        </button>
+                        <button class="quick-action-btn">
+                            <i style="margin-right: 4px;">👥</i>
+                            Thêm nhân viên
+                        </button>
+                        <button class="quick-action-btn">
+                            <i style="margin-right: 4px;">📊</i>
+                            Xem báo cáo
+                        </button>
+                        <button class="quick-action-btn">
+                            <i style="margin-right: 4px;">💰</i>
+                            Tính lương
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

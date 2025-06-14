@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Configuration Views -->
+    <record id="view_sbotchat_config_form" model="ir.ui.view">
+        <field name="name">sbotchat.config.form</field>
+        <field name="model">sbotchat.config</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình SBot Chat">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Tên cấu hình"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="model_type"/>
+                            <field name="api_key" password="True" placeholder="sk-..."/>
+                            <field name="is_active"/>
+                            <field name="user_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="temperature"/>
+                            <field name="max_tokens"/>
+                            <field name="top_p"/>
+                            <field name="frequency_penalty"/>
+                            <field name="presence_penalty"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="system_prompt" widget="text" placeholder="Bạn là một trợ lý AI hữu ích."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sbotchat_config_list" model="ir.ui.view">
+        <field name="name">sbotchat.config.list</field>
+        <field name="model">sbotchat.config</field>
+        <field name="arch" type="xml">
+            <list string="Cấu hình SBot Chat" default_order="create_date desc">
+                <field name="name"/>
+                <field name="model_type"/>
+                <field name="is_active"/>
+                <field name="user_id"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Conversation Views -->
+    <record id="view_sbotchat_conversation_form" model="ir.ui.view">
+        <field name="name">sbotchat.conversation.form</field>
+        <field name="model">sbotchat.conversation</field>
+        <field name="arch" type="xml">
+            <form string="Cuộc trò chuyện">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="title" placeholder="Tiêu đề cuộc trò chuyện"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id" readonly="1"/>
+                            <field name="message_count"/>
+                            <field name="is_active"/>
+                        </group>
+                        <group>
+                            <field name="last_message_date"/>
+                            <field name="create_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tin nhắn">
+                            <field name="message_ids" readonly="1">
+                                <list>
+                                    <field name="role"/>
+                                    <field name="content"/>
+                                    <field name="model_used"/>
+                                    <field name="tokens_used"/>
+                                    <field name="response_time"/>
+                                    <field name="create_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sbotchat_conversation_list" model="ir.ui.view">
+        <field name="name">sbotchat.conversation.list</field>
+        <field name="model">sbotchat.conversation</field>
+        <field name="arch" type="xml">
+            <list string="Cuộc trò chuyện" default_order="last_message_date desc, create_date desc">
+                <field name="title"/>
+                <field name="message_count"/>
+                <field name="last_message_date"/>
+                <field name="user_id"/>
+                <field name="is_active"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Message Views -->
+    <record id="view_sbotchat_message_form" model="ir.ui.view">
+        <field name="name">sbotchat.message.form</field>
+        <field name="model">sbotchat.message</field>
+        <field name="arch" type="xml">
+            <form string="Tin nhắn">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="conversation_id"/>
+                            <field name="role"/>
+                            <field name="model_used"/>
+                        </group>
+                        <group>
+                            <field name="tokens_used"/>
+                            <field name="response_time"/>
+                            <field name="create_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="content" widget="text"/>
+                    </group>
+                    <group string="Quá trình suy nghĩ" invisible="[('thinking_content', '=', False)]">
+                        <field name="thinking_content" widget="text"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sbotchat_message_list" model="ir.ui.view">
+        <field name="name">sbotchat.message.list</field>
+        <field name="model">sbotchat.message</field>
+        <field name="arch" type="xml">
+            <list string="Tin nhắn" default_order="create_date desc">
+                <field name="conversation_id"/>
+                <field name="role"/>
+                <field name="content"/>
+                <field name="model_used"/>
+                <field name="tokens_used"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Simple Chat Interface View -->
+    <record id="view_sbotchat_interface" model="ir.ui.view">
+        <field name="name">sbotchat.interface</field>
+        <field name="model">sbotchat.conversation</field>
+        <field name="arch" type="xml">
+            <form string="SBot Chat">
+                <sheet>
+                    <div class="o_form_sheet_bg">
+                        <div class="oe_title">
+                            <h1>SBot Chat - Trợ lý AI DeepSeek</h1>
+                        </div>
+                        <group>
+                            <div class="alert alert-info">
+                                <p><strong>Chào mừng đến với SBot Chat!</strong></p>
+                                <p>Đây là một chatbot AI mạnh mẽ được hỗ trợ bởi DeepSeek API.</p>
+                                <p>Để bắt đầu:</p>
+                                <ol>
+                                    <li>Cấu hình khóa API của bạn trong menu <strong>Cấu hình</strong></li>
+                                    <li>Chọn mô hình ưa thích của bạn (deepseek-chat hoặc deepseek-reasoner)</li>
+                                    <li>Bắt đầu chat bằng nút nổi hoặc giao diện cuộc trò chuyện</li>
+                                </ol>
+                                <p><strong>Lưu ý:</strong> Bạn cần một khóa API DeepSeek hợp lệ từ <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a></p>
+                            </div>
+                        </group>
+                        <group>
+                            <button name="open_chat_interface" string="Mở giao diện Chat" type="object" class="btn-primary"/>
+                            <button name="open_configuration" string="Mở cấu hình" type="object" class="btn-secondary"/>
+                        </group>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_sbotchat_config" model="ir.actions.act_window">
+        <field name="name">Cấu hình SBot Chat</field>
+        <field name="res_model">sbotchat.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'default_user_id': uid}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo cấu hình SBot Chat đầu tiên của bạn!
+            </p>
+            <p>
+                Cấu hình cài đặt DeepSeek API của bạn để bắt đầu sử dụng chatbot AI.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_sbotchat_conversation" model="ir.actions.act_window">
+        <field name="name">Cuộc trò chuyện</field>
+        <field name="res_model">sbotchat.conversation</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'default_user_id': uid}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có cuộc trò chuyện nào!
+            </p>
+            <p>
+                Bắt đầu cuộc trò chuyện đầu tiên của bạn với chatbot AI.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_sbotchat_message" model="ir.actions.act_window">
+        <field name="name">Tin nhắn</field>
+        <field name="res_model">sbotchat.message</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có tin nhắn nào!
+            </p>
+            <p>
+                Tin nhắn sẽ xuất hiện ở đây khi bạn chat với AI.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_sbotchat_interface" model="ir.actions.act_window">
+        <field name="name">SBot Chat</field>
+        <field name="res_model">sbotchat.conversation</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sbotchat_interface"/>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Client Action for Chat Interface -->
+    <record id="action_sbotchat_chat_interface" model="ir.actions.client">
+        <field name="name">Giao diện Chat</field>
+        <field name="tag">sbotchat.interface</field>
+    </record>
+</odoo> 

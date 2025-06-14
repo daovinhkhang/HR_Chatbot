@@ -1,0 +1,11 @@
+/* SBot Chat CSS Index File */
+/* This file handles requests to /sbotchat/static/src/css/ */
+
+@import url('sbotchat.css');
+@import url('ai_response_formatter.css');
+
+/* Redirect notice */
+body::before {
+    content: "CSS files loaded successfully";
+    display: none;
+} 

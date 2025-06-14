@@ -1,0 +1,940 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <!-- Main Chat Interface Template - Premium Design 2025 with Right Panel Dashboard -->
+    <t t-name="sbotchat.ChatInterface">
+        <div class="sbotchat-container">
+            <!-- Sidebar with Conversations -->
+            <div class="sbotchat-sidebar">
+                <!-- Header with New Chat Button -->
+                <div class="sbotchat-header">
+                    <h3>
+                        <span class="status-indicator status-online"></span>
+                        SBot Chat
+                    </h3>
+                    <button id="new-chat-btn" 
+                            class="btn-sbotchat" 
+                            t-att-disabled="state.isCreatingConversation">
+                        <t t-if="state.isCreatingConversation">
+                            <div class="loading-spinner" style="width: 16px; height: 16px; margin-right: 8px;"></div>
+                            Đang tạo...
+                        </t>
+                        <t t-else="">
+                            <i class="fa fa-plus" style="margin-right: 8px;"></i>
+                            Cuộc trò chuyện mới
+                        </t>
+                    </button>
+                </div>
+                
+                <!-- Conversations List -->
+                <div class="sbotchat-conversations">
+                    <t t-if="state.conversations.length === 0">
+                        <div class="empty-state" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">💬</div>
+                            <p style="margin: 0; font-weight: 500;">Chưa có cuộc trò chuyện nào</p>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; opacity: 0.8;">Bắt đầu chat mới để bắt đầu</p>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <t t-foreach="state.conversations" t-as="conversation" t-key="conversation.id">
+                            <div class="conversation-item" 
+                                 t-att-class="conversation.id === state.currentConversationId ? 'active' : ''"
+                                 t-on-click="() => this.selectConversation(conversation.id)">
+                                <div class="conversation-content">
+                                    <div class="conversation-title">
+                                        <i class="fa fa-comment-o" style="margin-right: 8px; opacity: 0.7;"></i>
+                                        <span t-att-data-conversation-id="conversation.id" class="conversation-title-text">
+                                            <t t-esc="conversation.title"/>
+                                        </span>
+                                    </div>
+                                    <div class="conversation-meta">
+                                        <i class="fa fa-clock-o" style="margin-right: 4px;"></i>
+                                        <t t-esc="conversation.last_message_date"/>
+                                        <span style="margin-left: 8px;">
+                                            <i class="fa fa-comment" style="margin-right: 4px;"></i>
+                                            <t t-esc="conversation.message_count"/> tin nhắn
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 3-dot menu -->
+                                <div class="conversation-menu" t-on-click.stop="">
+                                    <button class="conversation-menu-btn" 
+                                            t-att-data-conversation-id="conversation.id"
+                                            t-on-click.stop="(ev) => this.toggleConversationMenu(ev, conversation.id)">
+                                        <i class="fa fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="conversation-menu-dropdown" t-att-id="'menu-' + conversation.id">
+                                        <button class="conversation-menu-item"
+                                                t-on-click.stop="(ev) => this.renameConversation(ev, conversation.id)">
+                                            <i class="fa fa-edit"></i>
+                                            Đổi tên
+                                        </button>
+                                        <button class="conversation-menu-item"
+                                                t-on-click.stop="(ev) => this.duplicateConversation(ev, conversation.id)">
+                                            <i class="fa fa-copy"></i>
+                                            Sao chép
+                                        </button>
+                                        <button class="conversation-menu-item danger"
+                                                t-on-click.stop="(ev) => this.deleteConversation(ev, conversation.id)">
+                                            <i class="fa fa-trash"></i>
+                                            Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+            </div>
+            
+            <!-- Main Chat Area -->
+            <div class="sbotchat-main">
+                <!-- Chat Header with Settings -->
+                <div class="sbotchat-chat-header">
+                    <h3>
+                        <t t-if="state.currentConversation">
+                            <i class="fa fa-comments" style="margin-right: 12px;"></i>
+                            <t t-esc="state.currentConversation.title"/>
+                        </t>
+                        <t t-else="">
+                            <i class="fa fa-robot" style="margin-right: 12px;"></i>
+                            Trợ lý AI DeepSeek
+                        </t>
+                        <!-- HR Status Indicator -->
+                        <div class="hr-status-indicator" style="margin-left: 10px; font-size: 0.8rem;">
+                            <span class="hr-status-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 2px 8px; border-radius: 12px; font-weight: 500;">
+                                <i class="fa fa-users" style="margin-right: 4px;"></i>
+                                HR Assistant Active
+                            </span>
+                        </div>
+                    </h3>
+                    
+                    <div class="header-actions">
+                        <!-- HR Quick Actions -->
+                        <div class="hr-quick-actions" style="display: flex; gap: 8px; margin-right: 10px;">
+                            <button class="hr-quick-btn" title="Danh sách nhân viên" 
+                                    style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;"
+                                    t-on-click="() => this.sendSuggestion('Hiển thị danh sách nhân viên')">
+                                <i class="fa fa-users"></i>
+                            </button>
+                            <button class="hr-quick-btn" title="Chấm công hôm nay"
+                                    style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;"
+                                    t-on-click="() => this.sendSuggestion('Báo cáo chấm công hôm nay')">
+                                <i class="fa fa-clock-o"></i>
+                            </button>
+                            <button class="hr-quick-btn" title="Nghỉ phép chờ duyệt"
+                                    style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem;"
+                                    t-on-click="() => this.sendSuggestion('Danh sách nghỉ phép chờ duyệt')">
+                                <i class="fa fa-calendar"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Dashboard Toggle Button -->
+                        <button class="dashboard-toggle-btn" title="Toggle HR Dashboard" 
+                                style="background: rgba(147, 51, 234, 0.1); border: 1px solid rgba(147, 51, 234, 0.3); color: #9333ea; padding: 8px 12px; border-radius: 6px; margin-right: 8px;"
+                                t-on-click="toggleDashboard">
+                            <i class="fa fa-dashboard"></i>
+                        </button>
+                        
+                        <!-- HR Help Button -->
+                        <button class="hr-help-btn" title="HR Assistant Help" 
+                                style="background: rgba(147, 51, 234, 0.1); border: 1px solid rgba(147, 51, 234, 0.3); color: #9333ea; padding: 8px 12px; border-radius: 6px; margin-right: 8px;"
+                                t-on-click="() => this.sendSuggestion('Hướng dẫn sử dụng HR Assistant')">
+                            <i class="fa fa-question-circle"></i>
+                        </button>
+                        <button id="settings-btn" t-on-click="openSettings">
+                            <i class="fa fa-cog"></i>
+                        </button>
+                        <!-- Close Button (X) to return to Odoo - Moved to RIGHT -->
+                        <button id="close-chat-btn" t-on-click="closeChat" class="sbotchat-close-btn">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- HR Feedback Container -->
+                <div class="sbotchat-hr-feedback" style="margin-bottom: 1rem;">
+                    <!-- HR action feedback sẽ được hiển thị dynamic ở đây -->
+                </div>
+                
+                <!-- Messages Area -->
+                <div class="sbotchat-messages" id="messages-container">
+                    <t t-if="state.messages.length === 0">
+                        <div class="welcome-message" style="text-align: center; padding: 3rem 2rem; color: var(--text-secondary);">
+                            <div style="font-size: 4rem; margin-bottom: 1.5rem;">🤖</div>
+                            <h3 style="margin: 0 0 1rem 0; font-weight: 700; color: var(--text-primary);">
+                                Chào mừng đến với SBot Chat!
+                            </h3>
+                            <p style="margin: 0 0 1rem 0; font-size: 1.1rem; opacity: 0.8;">
+                                Tôi là trợ lý AI được hỗ trợ bởi DeepSeek với khả năng quản lý HR. Hôm nay tôi có thể giúp gì cho bạn?
+                            </p>
+                            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                                <div class="suggestion-chip" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.75rem 1rem; border-radius: 1rem; cursor: pointer; transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Hiển thị danh sách nhân viên')">
+                                    <i class="fa fa-users" style="margin-right: 8px;"></i>
+                                    Danh sách nhân viên
+                                </div>
+                                <div class="suggestion-chip" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.75rem 1rem; border-radius: 1rem; cursor: pointer; transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Tạo đơn nghỉ phép mới')">
+                                    <i class="fa fa-calendar" style="margin-right: 8px;"></i>
+                                    Tạo đơn nghỉ phép
+                                </div>
+                                <div class="suggestion-chip" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.75rem 1rem; border-radius: 1rem; cursor: pointer; transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Báo cáo chấm công tháng này')">
+                                    <i class="fa fa-clock-o" style="margin-right: 8px;"></i>
+                                    Báo cáo chấm công
+                                </div>
+                                <div class="suggestion-chip" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.75rem 1rem; border-radius: 1rem; cursor: pointer; transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Tính lương cho nhân viên')">
+                                    <i class="fa fa-money" style="margin-right: 8px;"></i>
+                                    Tính lương
+                                </div>
+                            </div>
+                            
+                            <!-- HR Suggestions Section -->
+                            <div class="hr-suggestions-section" style="margin-top: 2rem;">
+                                <div class="hr-suggestions-title" style="text-align: center; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
+                                    <i class="fa fa-users" style="margin-right: 8px; color: var(--primary-color);"></i>
+                                    HR Assistant Commands
+                                </div>
+                                <div class="sbotchat-suggestions" style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                                    <!-- Employee Management -->
+                                    <div class="hr-suggestion-chip" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6; padding: 0.5rem 0.75rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" t-on-click="() => this.sendSuggestion('Tạo nhân viên mới')">
+                                        <i class="fa fa-user-plus" style="margin-right: 6px;"></i>
+                                        Tạo nhân viên
+                                    </div>
+                                    <div class="hr-suggestion-chip" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; padding: 0.5rem 0.75rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" t-on-click="() => this.sendSuggestion('Check-in nhân viên')">
+                                        <i class="fa fa-sign-in" style="margin-right: 6px;"></i>
+                                        Check-in
+                                    </div>
+                                    <div class="hr-suggestion-chip" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b; padding: 0.5rem 0.75rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" t-on-click="() => this.sendSuggestion('Tạo đơn nghỉ phép')">
+                                        <i class="fa fa-calendar-plus-o" style="margin-right: 6px;"></i>
+                                        Đơn nghỉ phép
+                                    </div>
+                                    <div class="hr-suggestion-chip" style="background: rgba(147, 51, 234, 0.1); border: 1px solid rgba(147, 51, 234, 0.3); color: #9333ea; padding: 0.5rem 0.75rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" t-on-click="() => this.sendSuggestion('Dashboard HR stats')">
+                                        <i class="fa fa-dashboard" style="margin-right: 6px;"></i>
+                                        Dashboard
+                                    </div>
+                                    <div class="hr-suggestion-chip" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0.5rem 0.75rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" t-on-click="() => this.sendSuggestion('Quản lý BHXH BHYT')">
+                                        <i class="fa fa-shield" style="margin-right: 6px;"></i>
+                                        Bảo hiểm
+                                    </div>
+                                    <!-- Additional HR commands -->
+                                    <div class="hr-suggestion-chip" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; padding: 0.5rem 0.75rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" t-on-click="() => this.sendSuggestion('Tìm kiếm nhân viên')">
+                                        <i class="fa fa-search" style="margin-right: 6px;"></i>
+                                        Tìm kiếm
+                                    </div>
+                                    <div class="hr-suggestion-chip" style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); color: #a855f7; padding: 0.5rem 0.75rem; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem;" t-on-click="() => this.sendSuggestion('Báo cáo phân tích HR')">
+                                        <i class="fa fa-line-chart" style="margin-right: 6px;"></i>
+                                        Báo cáo
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <t t-foreach="state.messages" t-as="message" t-key="message.id">
+                            <div t-att-class="'message ' + (message.role === 'user' ? 'user-message' : 'assistant-message') + (message.hr_action ? ' hr-action' : '') + (message.isError ? ' error' : '')">
+                                <div class="message-content">
+                                    <t t-if="message.role === 'user'">
+                                        <i class="fa fa-user" style="margin-right: 8px; opacity: 0.8;"></i>
+                                        <!-- User messages stay as plain text -->
+                                        <span t-esc="message.content"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i t-att-class="'fa ' + (message.hr_action ? 'fa-users' : 'fa-robot')" style="margin-right: 8px; opacity: 0.8;"></i>
+                                        <!-- AI Assistant messages use formatter -->
+                                        <div class="ai-formatted-content" t-att-data-content="message.content" t-att-data-hr-action="message.hr_action" t-att-data-api-called="message.api_called" t-att-data-intent="message.intent"></div>
+                                    </t>
+                                    
+                                    <!-- HR Action Info (deprecated - now handled by formatter) -->
+                                    <t t-if="message.hr_action and message.api_called and !message.content.includes('🤖')">
+                                        <div class="hr-action-info-legacy" style="margin-top: 8px; padding: 6px 10px; background: rgba(16, 185, 129, 0.1); border-radius: 4px; font-size: 0.8rem; color: var(--success);">
+                                            <strong>🤖 API Called:</strong> <t t-esc="message.api_called"/>
+                                            <br/><strong>Intent:</strong> <t t-esc="message.intent"/>
+                                        </div>
+                                    </t>
+                                    
+                                    <!-- Thinking Content for Assistant Messages -->
+                                    <t t-if="message.role === 'assistant' and message.thinking">
+                                        <div class="thinking-content">
+                                            <details>
+                                                <summary>
+                                                    <i class="fa fa-brain" style="margin-right: 8px;"></i>
+                                                    Xem quá trình suy luận của AI
+                                                </summary>
+                                                <div class="thinking-text">
+                                                    <t t-esc="message.thinking"/>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="message-meta">
+                                    <t t-if="message.role === 'user'">
+                                        <i class="fa fa-check" style="margin-right: 4px; color: var(--success);"></i>
+                                        Bạn • <t t-esc="message.timestamp"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i t-att-class="'fa ' + (message.hr_action ? 'fa-users' : 'fa-robot')" style="margin-right: 4px; color: var(--primary-color);"></i>
+                                        <t t-esc="message.hr_action ? 'HR Agent' : 'SBot'"/> • <t t-esc="message.timestamp"/>
+                                        <t t-if="message.response_time">
+                                            • <t t-esc="message.response_time"/>ms
+                                        </t>
+                                        <t t-if="message.tokens_used">
+                                            • <t t-esc="message.tokens_used"/> tokens
+                                        </t>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                    
+                    <!-- Typing Indicator -->
+                    <div t-if="state.isTyping" class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="sbotchat-input">
+                    <div class="input-group">
+                        <input type="text" 
+                               id="message-input" 
+                               placeholder="Nhập tin nhắn của bạn tại đây... (Nhấn Enter để gửi)"
+                               t-on-keydown="handleKeyDown"
+                               autocomplete="off"
+                               spellcheck="true"/>
+                        <button id="send-btn" t-on-click="sendMessage" t-att-disabled="state.isLoading">
+                            <t t-if="state.isLoading">
+                                <div class="loading-spinner"></div>
+                            </t>
+                            <t t-else="">
+                                <i class="fa fa-paper-plane"></i>
+                            </t>
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+                        <!-- General Quick Actions -->
+                        <button class="quick-action-btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0.5rem 1rem; border-radius: 1rem; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-size: 0.875rem;" t-on-click="() => this.insertText('Giải thích điều này: ')">
+                            <i class="fa fa-question-circle" style="margin-right: 6px;"></i>
+                            Giải thích
+                        </button>
+                        <button class="quick-action-btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0.5rem 1rem; border-radius: 1rem; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-size: 0.875rem;" t-on-click="() => this.insertText('Tóm tắt: ')">
+                            <i class="fa fa-compress" style="margin-right: 6px;"></i>
+                            Tóm tắt
+                        </button>
+                        <button class="quick-action-btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0.5rem 1rem; border-radius: 1rem; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-size: 0.875rem;" t-on-click="() => this.insertText('Viết code cho: ')">
+                            <i class="fa fa-code" style="margin-right: 6px;"></i>
+                            Lập trình
+                        </button>
+                        
+                        <!-- HR Quick Actions -->
+                        <button class="quick-action-btn hr-quick-action" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); padding: 0.5rem 1rem; border-radius: 1rem; color: #3b82f6; cursor: pointer; transition: all 0.2s; font-size: 0.875rem;" t-on-click="() => this.insertText('Hiển thị danh sách nhân viên ')">
+                            <i class="fa fa-users" style="margin-right: 6px;"></i>
+                            Nhân viên
+                        </button>
+                        <button class="quick-action-btn hr-quick-action" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.5rem 1rem; border-radius: 1rem; color: #10b981; cursor: pointer; transition: all 0.2s; font-size: 0.875rem;" t-on-click="() => this.insertText('Báo cáo chấm công ')">
+                            <i class="fa fa-clock-o" style="margin-right: 6px;"></i>
+                            Chấm công
+                        </button>
+                        <button class="quick-action-btn hr-quick-action" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.5rem 1rem; border-radius: 1rem; color: #f59e0b; cursor: pointer; transition: all 0.2s; font-size: 0.875rem;" t-on-click="() => this.insertText('Tạo đơn nghỉ phép ')">
+                            <i class="fa fa-calendar" style="margin-right: 6px;"></i>
+                            Nghỉ phép
+                        </button>
+                        
+                        <!-- Clear Chat Action -->
+                        <button class="quick-action-btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0.5rem 1rem; border-radius: 1rem; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-size: 0.875rem;" t-on-click="clearMessages">
+                            <i class="fa fa-trash" style="margin-right: 6px;"></i>
+                            Xóa chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel Dashboard -->
+            <div class="sbotchat-right-panel" t-att-class="state.showDashboard ? 'visible' : 'hidden'">
+                <!-- Dashboard Header -->
+                <div class="dashboard-header">
+                    <h3>
+                        <i class="fa fa-dashboard"></i>
+                        Bảng Điều Khiển HR
+                    </h3>
+                    <div class="dashboard-controls">
+                        <button class="dashboard-refresh-btn" title="Làm mới dữ liệu" t-on-click="refreshDashboard">
+                            <i class="fa fa-refresh" t-att-class="state.dashboardLoading ? 'fa-spin' : ''"></i>
+                        </button>
+                        <button class="dashboard-close-btn" title="Đóng bảng điều khiển" t-on-click="toggleDashboard">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tab Navigation -->
+                <div class="dashboard-tabs">
+                    <button class="tab-btn" t-att-class="state.activeTab === 'overview' ? 'active' : ''" 
+                            t-on-click="() => this.switchTab('overview')">
+                        <i class="fa fa-tachometer"></i>
+                        <span>Tổng quan</span>
+                    </button>
+                    <button class="tab-btn" t-att-class="state.activeTab === 'analytics' ? 'active' : ''" 
+                            t-on-click="() => this.switchTab('analytics')">
+                        <i class="fa fa-chart-line"></i>
+                        <span>Phân tích</span>
+                    </button>
+                    <button class="tab-btn" t-att-class="state.activeTab === 'actions' ? 'active' : ''" 
+                            t-on-click="() => this.switchTab('actions')">
+                        <i class="fa fa-bolt"></i>
+                        <span>Thao tác</span>
+                    </button>
+                    <button class="tab-btn" t-att-class="state.activeTab === 'settings' ? 'active' : ''" 
+                            t-on-click="() => this.switchTab('settings')">
+                        <i class="fa fa-cogs"></i>
+                        <span>Cài đặt</span>
+                    </button>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="dashboard-content-fixed">
+                    <!-- Overview Tab -->
+                    <div class="tab-content" t-att-class="state.activeTab === 'overview' ? 'active' : ''">
+                        <!-- Employee Overview -->
+                        <div class="content-section">
+                            <h4><i class="fa fa-users"></i> Nhân viên</h4>
+                            <div class="mini-stats-grid">
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData?.employee_overview?.total_employees || 0"></div>
+                                    <div class="mini-stat-label">Tổng số</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData?.employee_overview?.active_employees || 0"></div>
+                                    <div class="mini-stat-label">Đang làm</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData?.employee_overview?.departments_count || 0"></div>
+                                    <div class="mini-stat-label">Phòng ban</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData?.employee_overview?.today_checkins || 0"></div>
+                                    <div class="mini-stat-label">Đã vào</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Attendance Today -->
+                        <div class="content-section" t-if="state.dashboardData?.realtime_attendance?.summary">
+                            <h4><i class="fa fa-clock-o"></i> Chấm công hôm nay</h4>
+                            
+                            <!-- Real-time Clock -->
+                            <div style="text-align: center; margin-bottom: 1rem; padding: 0.75rem; background: rgba(59, 130, 246, 0.08); border-radius: 0.5rem; border: 1px solid rgba(59, 130, 246, 0.15);">
+                                <div style="font-size: 1rem; font-weight: 600; color: #3b82f6;" id="current-time">
+                                    <i class="fa fa-clock-o" style="margin-right: 6px;"></i>
+                                    <span t-esc="new Date().toLocaleTimeString('vi-VN')"></span>
+                                </div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px;" t-esc="new Date().toLocaleDateString('vi-VN', {weekday: 'short', day: 'numeric', month: 'short'})"></div>
+                            </div>
+                            
+                            <!-- Attendance Summary Cards -->
+                            <div class="mini-stats-grid">
+                                <div class="mini-stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border-color: rgba(16, 185, 129, 0.2);">
+                                    <div class="mini-stat-number" style="color: #10b981;" t-esc="state.dashboardData.realtime_attendance.summary.total_today || 0"></div>
+                                    <div class="mini-stat-label">Đã check-in</div>
+                                </div>
+                                <div class="mini-stat-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border-color: rgba(245, 158, 11, 0.2);">
+                                    <div class="mini-stat-number" style="color: #f59e0b;" t-esc="state.dashboardData.realtime_attendance.summary.late || 0"></div>
+                                    <div class="mini-stat-label">Đi muộn</div>
+                                </div>
+                                <div class="mini-stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-color: rgba(239, 68, 68, 0.2);">
+                                    <div class="mini-stat-number" style="color: #ef4444;" t-esc="(state.dashboardData.employee_overview.total_employees || 0) - (state.dashboardData.realtime_attendance.summary.total_today || 0)"></div>
+                                    <div class="mini-stat-label">Chưa vào</div>
+                                </div>
+                                <div class="mini-stat-card" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.05)); border-color: rgba(168, 85, 247, 0.2);">
+                                    <div class="mini-stat-number" style="color: #a855f7;" t-esc="Math.round(((state.dashboardData.realtime_attendance.summary.total_today || 0) / Math.max(state.dashboardData.employee_overview.total_employees || 1, 1)) * 100)"></div>
+                                    <div class="mini-stat-label">Tỷ lệ (%)</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Donut Chart -->
+                            <div class="donut-chart">
+                                <svg viewBox="0 0 42 42">
+                                    <!-- Background circle -->
+                                    <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(148, 163, 184, 0.15)" stroke-width="2"/>
+                                    
+                                    <!-- Present (Green) -->
+                                    <circle class="donut-segment" cx="21" cy="21" r="15.915" 
+                                            stroke="#10b981" stroke-width="3" fill="none"
+                                            t-att-stroke-dasharray="((state.dashboardData.realtime_attendance.summary.total_today || 0) / Math.max(state.dashboardData.employee_overview.total_employees || 1, 1) * 100) + ' 100'"
+                                            stroke-dashoffset="0"/>
+                                    
+                                    <!-- Late (Orange) -->
+                                    <circle class="donut-segment" cx="21" cy="21" r="15.915" 
+                                            stroke="#f59e0b" stroke-width="3" fill="none"
+                                            t-att-stroke-dasharray="((state.dashboardData.realtime_attendance.summary.late || 0) / Math.max(state.dashboardData.employee_overview.total_employees || 1, 1) * 100) + ' 100'"
+                                            t-att-stroke-dashoffset="100 - ((state.dashboardData.realtime_attendance.summary.total_today || 0) / Math.max(state.dashboardData.employee_overview.total_employees || 1, 1) * 100)"/>
+                                </svg>
+                                <div class="donut-center">
+                                    <div class="donut-value" t-esc="state.dashboardData.realtime_attendance.summary.total_today || 0"></div>
+                                    <div class="donut-label">Đã vào</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Legend -->
+                            <div style="display: flex; justify-content: space-around; margin-top: 0.75rem; font-size: 0.65rem; gap: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></div>
+                                    <span>Có mặt (<t t-esc="state.dashboardData.realtime_attendance.summary.total_today || 0"/>)</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></div>
+                                    <span>Muộn (<t t-esc="state.dashboardData.realtime_attendance.summary.late || 0"/>)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Check-ins -->
+                        <div class="content-section" t-if="state.dashboardData?.realtime_attendance?.recent_checkins?.length">
+                            <h4><i class="fa fa-history"></i> Check-in gần đây</h4>
+                            <div class="attendance-list">
+                                <div class="compact-list">
+                                    <t t-foreach="state.dashboardData.realtime_attendance.recent_checkins.slice(0, 6)" t-as="checkin" t-key="checkin.id">
+                                        <div class="compact-list-item">
+                                            <div class="item-name">
+                                                <div style="font-weight: 500; font-size: 0.75rem;" t-esc="checkin.employee_name"></div>
+                                                <div style="font-size: 0.65rem; color: var(--text-tertiary); margin-top: 2px;" t-esc="checkin.department || 'N/A'"></div>
+                                            </div>
+                                            <div class="item-value">
+                                                <div style="font-size: 0.7rem; font-weight: 500;" t-esc="checkin.check_in_time"></div>
+                                                <div style="font-size: 0.6rem; color: var(--success); margin-top: 2px;">✓ Đúng giờ</div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                                <button class="approve-btn" style="flex: 1; font-size: 0.7rem;" 
+                                        t-on-click="() => this.sendSuggestion('Báo cáo chấm công hôm nay')">
+                                    <i class="fa fa-file-text-o"></i>
+                                    Báo cáo
+                                </button>
+                                <button class="approve-btn" style="flex: 1; font-size: 0.7rem; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #f59e0b;" 
+                                        t-on-click="() => this.sendSuggestion('Danh sách nhân viên đi muộn')">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                    Đi muộn
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analytics Tab -->
+                    <div class="tab-content" t-att-class="state.activeTab === 'analytics' ? 'active' : ''">
+                        <!-- Leave Statistics -->
+                        <div class="content-section" t-if="state.dashboardData?.leave_management">
+                            <h4><i class="fa fa-calendar"></i> Thống kê nghỉ phép</h4>
+                            <div class="mini-stats-grid">
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData.leave_management.pending_approvals || 0"></div>
+                                    <div class="mini-stat-label">Chờ duyệt</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData.leave_management.approved_today || 0"></div>
+                                    <div class="mini-stat-label">Đã duyệt</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData.leave_management.on_leave_today || 0"></div>
+                                    <div class="mini-stat-label">Đang nghỉ</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number" t-esc="state.dashboardData.leave_management.rejected_today || 0"></div>
+                                    <div class="mini-stat-label">Từ chối</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pending Requests -->
+                        <div class="content-section" t-if="state.dashboardData?.leave_management?.pending_requests?.length">
+                            <h4><i class="fa fa-clock-o"></i> Đơn chờ duyệt</h4>
+                            <div class="compact-list">
+                                <t t-foreach="state.dashboardData.leave_management.pending_requests.slice(0, 4)" t-as="leave" t-key="leave.id">
+                                    <div class="compact-list-item">
+                                        <div class="item-name">
+                                            <span t-esc="(typeof leave.employee_name === 'string') ? leave.employee_name : (leave.employee_name?.name || 'N/A')"></span>
+                                        </div>
+                                        <div class="item-value">
+                                            <span t-esc="(typeof leave.days === 'number') ? leave.days : (leave.days || 0)"></span> ngày
+                                            <button class="approve-btn" style="margin-left: 6px; padding: 2px 6px; font-size: 0.6rem;" 
+                                                    t-on-click="(ev) => this.quickApproveLeave(ev, leave.id)">
+                                                <i class="fa fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        
+                        <!-- Department Performance -->
+                        <div class="content-section">
+                            <h4><i class="fa fa-building"></i> Hiệu suất phòng ban</h4>
+                            <div class="compact-list">
+                                <div class="compact-list-item">
+                                    <div class="item-name">IT Department</div>
+                                    <div class="item-value" style="color: var(--success);">95%</div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">HR Department</div>
+                                    <div class="item-value" style="color: var(--success);">92%</div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">Sales Department</div>
+                                    <div class="item-value" style="color: var(--warning);">87%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions Tab -->
+                    <div class="tab-content" t-att-class="state.activeTab === 'actions' ? 'active' : ''">
+                        <!-- Quick Actions Grid -->
+                        <div class="content-section" style="margin-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.75rem;"><i class="fa fa-bolt"></i> Thao tác nhanh</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <div class="mini-stat-card" style="cursor: pointer; padding: 0.75rem; text-align: center; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)); border-color: rgba(59, 130, 246, 0.2); transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Tạo nhân viên mới')">
+                                    <div style="color: #3b82f6; font-size: 1.5rem; margin-bottom: 0.25rem;">
+                                        <i class="fa fa-user-plus"></i>
+                                    </div>
+                                    <div class="mini-stat-label" style="font-weight: 500; font-size: 0.7rem;">Thêm nhân viên</div>
+                                </div>
+                                <div class="mini-stat-card" style="cursor: pointer; padding: 0.75rem; text-align: center; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border-color: rgba(16, 185, 129, 0.2); transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Báo cáo chấm công')">
+                                    <div style="color: #10b981; font-size: 1.5rem; margin-bottom: 0.25rem;">
+                                        <i class="fa fa-clock-o"></i>
+                                    </div>
+                                    <div class="mini-stat-label" style="font-weight: 500; font-size: 0.7rem;">Báo cáo chấm công</div>
+                                </div>
+                                <div class="mini-stat-card" style="cursor: pointer; padding: 0.75rem; text-align: center; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border-color: rgba(245, 158, 11, 0.2); transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Duyệt nghỉ phép')">
+                                    <div style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 0.25rem;">
+                                        <i class="fa fa-calendar-check-o"></i>
+                                    </div>
+                                    <div class="mini-stat-label" style="font-weight: 500; font-size: 0.7rem;">Duyệt nghỉ phép</div>
+                                </div>
+                                <div class="mini-stat-card" style="cursor: pointer; padding: 0.75rem; text-align: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05)); border-color: rgba(139, 92, 246, 0.2); transition: all 0.2s;" t-on-click="() => this.sendSuggestion('Tính lương')">
+                                    <div style="color: #8b5cf6; font-size: 1.5rem; margin-bottom: 0.25rem;">
+                                        <i class="fa fa-money"></i>
+                                    </div>
+                                    <div class="mini-stat-label" style="font-weight: 500; font-size: 0.7rem;">Tính lương</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Quick Actions -->
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 0.4rem;">
+                                <button class="approve-btn" style="width: 100%; padding: 0.5rem; font-size: 0.75rem; background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.1)); border-color: rgba(34, 197, 94, 0.3); color: #22c55e;" 
+                                        t-on-click="() => this.sendSuggestion('Tạo phòng ban mới')">
+                                    <i class="fa fa-building" style="margin-right: 6px;"></i>
+                                    Tạo phòng ban
+                                </button>
+                                <button class="approve-btn" style="width: 100%; padding: 0.5rem; font-size: 0.75rem; background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.1)); border-color: rgba(168, 85, 247, 0.3); color: #a855f7;" 
+                                        t-on-click="() => this.sendSuggestion('Tạo vị trí công việc mới')">
+                                    <i class="fa fa-briefcase" style="margin-right: 6px;"></i>
+                                    Tạo vị trí
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- System Status -->
+                        <div class="content-section" style="margin-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem;"><i class="fa fa-server"></i> Trạng thái hệ thống</h4>
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 0.4rem;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 0.375rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></div>
+                                        <i class="fa fa-database" style="color: #10b981; margin-right: 4px; font-size: 0.8rem;"></i>
+                                        <span style="font-size: 0.75rem; font-weight: 500;">Database</span>
+                                    </div>
+                                    <span style="font-size: 0.7rem; color: #10b981; font-weight: 600;">ONLINE</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 0.375rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></div>
+                                        <i class="fa fa-wifi" style="color: #10b981; margin-right: 4px; font-size: 0.8rem;"></i>
+                                        <span style="font-size: 0.75rem; font-weight: 500;">API</span>
+                                    </div>
+                                    <span style="font-size: 0.7rem; color: #10b981; font-weight: 600;">STABLE</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 0.375rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></div>
+                                        <i class="fa fa-shield" style="color: #10b981; margin-right: 4px; font-size: 0.8rem;"></i>
+                                        <span style="font-size: 0.75rem; font-weight: 500;">Security</span>
+                                    </div>
+                                    <span style="font-size: 0.7rem; color: #10b981; font-weight: 600;">SECURE</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Actions -->
+                        <div class="content-section">
+                            <h4 style="margin-bottom: 0.5rem;"><i class="fa fa-history"></i> Hoạt động gần đây</h4>
+                            <div class="compact-list">
+                                <div class="compact-list-item">
+                                    <div class="item-name">
+                                        <i class="fa fa-user-plus" style="color: #3b82f6; margin-right: 6px;"></i>
+                                        <span style="font-size: 0.75rem;">Thêm nhân viên mới</span>
+                                    </div>
+                                    <div class="item-value" style="font-size: 0.7rem; color: var(--text-tertiary);">2 phút</div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">
+                                        <i class="fa fa-check-circle" style="color: #10b981; margin-right: 6px;"></i>
+                                        <span style="font-size: 0.75rem;">Duyệt đơn nghỉ phép</span>
+                                    </div>
+                                    <div class="item-value" style="font-size: 0.7rem; color: var(--text-tertiary);">5 phút</div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">
+                                        <i class="fa fa-file-text-o" style="color: #f59e0b; margin-right: 6px;"></i>
+                                        <span style="font-size: 0.75rem;">Tạo báo cáo</span>
+                                    </div>
+                                    <div class="item-value" style="font-size: 0.7rem; color: var(--text-tertiary);">10 phút</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Tab -->
+                    <div class="tab-content" t-att-class="state.activeTab === 'settings' ? 'active' : ''">
+                        <!-- Dashboard Settings -->
+                        <div class="content-section">
+                            <h4><i class="fa fa-cogs"></i> Cài đặt Dashboard</h4>
+                            <div class="compact-list">
+                                <div class="compact-list-item">
+                                    <div class="item-name">Auto-refresh</div>
+                                    <div class="item-value">
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="auto-refresh" 
+                                                   t-att-checked="state.autoRefreshEnabled"
+                                                   t-on-change="(ev) => this.toggleAutoRefresh(ev.target.checked)"/>
+                                            <label for="auto-refresh"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">Notifications</div>
+                                    <div class="item-value">
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="notifications" 
+                                                   t-att-checked="state.notificationsEnabled"
+                                                   t-on-change="(ev) => this.toggleNotifications(ev.target.checked)"/>
+                                            <label for="notifications"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">Dark Mode</div>
+                                    <div class="item-value">
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="dark-mode" 
+                                                   t-att-checked="state.darkModeEnabled"
+                                                   t-on-change="(ev) => this.toggleDarkMode(ev.target.checked)"/>
+                                            <label for="dark-mode"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance Metrics -->
+                        <div class="content-section">
+                            <h4><i class="fa fa-tachometer"></i> Hiệu suất</h4>
+                            <div class="mini-stats-grid">
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number">98%</div>
+                                    <div class="mini-stat-label">Uptime</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number">45ms</div>
+                                    <div class="mini-stat-label">Response</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number">1.2GB</div>
+                                    <div class="mini-stat-label">Memory</div>
+                                </div>
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-number">15%</div>
+                                    <div class="mini-stat-label">CPU</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- System Info -->
+                        <div class="content-section">
+                            <h4><i class="fa fa-info-circle"></i> Thông tin hệ thống</h4>
+                            <div class="compact-list">
+                                <div class="compact-list-item">
+                                    <div class="item-name">Odoo Version</div>
+                                    <div class="item-value">18.0</div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">SBot Version</div>
+                                    <div class="item-value">2.1.0</div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">Last Update</div>
+                                    <div class="item-value">Vừa xong</div>
+                                </div>
+                                <div class="compact-list-item">
+                                    <div class="item-name">Active Users</div>
+                                    <div class="item-value" t-esc="state.dashboardData?.system_info?.active_users || '0'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Modal -->
+        <div t-if="state.showSettings" class="sbotchat-modal" t-on-click="closeSettingsOnBackdrop">
+            <div class="sbotchat-modal-content" t-on-click.stop="">
+                <div class="sbotchat-modal-header">
+                    <h4>
+                        <i class="fa fa-cog" style="margin-right: 12px;"></i>
+                        Cài đặt &amp; Cấu hình
+                    </h4>
+                    <button class="sbotchat-modal-close" t-on-click="closeSettings">
+                        ×
+                    </button>
+                </div>
+                <div class="sbotchat-modal-body">
+                    <!-- Settings Form -->
+                    <div style="padding: 2rem;">
+                        <!-- API Configuration Section -->
+                        <div class="settings-section" style="margin-bottom: 2rem;">
+                            <h5 style="margin: 0 0 1rem 0; font-weight: 600; color: var(--text-primary); display: flex; align-items: center;">
+                                <i class="fa fa-key" style="margin-right: 8px; color: var(--primary-color);"></i>
+                                Cấu hình API
+                            </h5>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="api-key" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">
+                                    <i class="fa fa-lock" style="margin-right: 6px;"></i>
+                                    Khóa API DeepSeek
+                                </label>
+                                <input type="password" 
+                                       id="api-key" 
+                                       placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                       style="width: 100%; padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0.5rem; background: rgba(255, 255, 255, 0.1); color: var(--text-primary); backdrop-filter: blur(10px); transition: all 0.2s;"
+                                       t-att-value="state.config.api_key || ''"/>
+                                <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                                    <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+                                    Lấy khóa API của bạn từ <a href="https://platform.deepseek.com" target="_blank" style="color: var(--primary-color);">DeepSeek Platform</a>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Model Configuration Section -->
+                        <div class="settings-section" style="margin-bottom: 2rem;">
+                            <h5 style="margin: 0 0 1rem 0; font-weight: 600; color: var(--text-primary); display: flex; align-items: center;">
+                                <i class="fa fa-brain" style="margin-right: 8px; color: var(--primary-color);"></i>
+                                Cấu hình mô hình
+                            </h5>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="model-type" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">
+                                    <i class="fa fa-microchip" style="margin-right: 6px;"></i>
+                                    Loại mô hình
+                                </label>
+                                <select id="model-type" 
+                                        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0.5rem; background: rgba(255, 255, 255, 0.1); color: var(--text-primary); backdrop-filter: blur(10px);">
+                                    <option value="deepseek-chat">DeepSeek Chat (Khuyến nghị)</option>
+                                    <option value="deepseek-coder">DeepSeek Coder</option>
+                                    <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="temperature" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">
+                                    <i class="fa fa-thermometer-half" style="margin-right: 6px;"></i>
+                                    Nhiệt độ: <span id="temperature-value">1.0</span>
+                                </label>
+                                <input type="range" 
+                                       id="temperature" 
+                                       min="0" 
+                                       max="2" 
+                                       step="0.1" 
+                                       value="1.0"
+                                       style="width: 100%; margin-bottom: 0.5rem;"
+                                       t-on-input="updateTemperatureDisplay"/>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                                    <span>Tập trung hơn</span>
+                                    <span>Sáng tạo hơn</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="max-tokens" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">
+                                    <i class="fa fa-text-width" style="margin-right: 6px;"></i>
+                                    Số token tối đa
+                                </label>
+                                <input type="number" 
+                                       id="max-tokens" 
+                                       min="100" 
+                                       max="8000" 
+                                       value="4000"
+                                       style="width: 100%; padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0.5rem; background: rgba(255, 255, 255, 0.1); color: var(--text-primary); backdrop-filter: blur(10px);"/>
+                                <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                                    <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+                                    Độ dài tối đa của phản hồi AI
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- System Prompt Section -->
+                        <div class="settings-section" style="margin-bottom: 2rem;">
+                            <h5 style="margin: 0 0 1rem 0; font-weight: 600; color: var(--text-primary); display: flex; align-items: center;">
+                                <i class="fa fa-edit" style="margin-right: 8px; color: var(--primary-color);"></i>
+                                Lời nhắc hệ thống
+                            </h5>
+                            
+                            <div class="form-group">
+                                <label for="system-prompt" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary);">
+                                    <i class="fa fa-file-text-o" style="margin-right: 6px;"></i>
+                                    Hướng dẫn tùy chỉnh
+                                </label>
+                                <textarea id="system-prompt" 
+                                          rows="4" 
+                                          placeholder="Bạn là một trợ lý AI hữu ích. Hãy ngắn gọn và chính xác trong các phản hồi của bạn."
+                                          style="width: 100%; padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0.5rem; background: rgba(255, 255, 255, 0.1); color: var(--text-primary); backdrop-filter: blur(10px); resize: vertical; min-height: 100px;"></textarea>
+                                <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                                    <i class="fa fa-lightbulb-o" style="margin-right: 4px;"></i>
+                                    Định nghĩa cách AI nên hoạt động và phản hồi
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <button class="btn-secondary" 
+                                    style="padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.1); color: var(--text-secondary); border-radius: 0.5rem; cursor: pointer; transition: all 0.2s;"
+                                    t-on-click="resetSettings">
+                                <i class="fa fa-undo" style="margin-right: 6px;"></i>
+                                Đặt lại mặc định
+                            </button>
+                            <button class="btn-sbotchat" t-on-click="saveConfig">
+                                <i class="fa fa-save" style="margin-right: 6px;"></i>
+                                Lưu cấu hình
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+    
+    <!-- Global Floating Button Template -->
+    <t t-name="sbotchat.FloatingButton">
+        <div class="sbotchat-global-floating-btn" t-on-click="openChat">
+            <span class="sbot-text">SBOT</span>
+            <div class="tooltip">Mở SBot Chat</div>
+        </div>
+    </t>
+</templates> 
